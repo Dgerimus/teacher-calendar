@@ -1,4 +1,3 @@
-// components/TimeSlot.jsx
 const TimeSlot = ({
   timeSlot,
   day,
@@ -7,8 +6,6 @@ const TimeSlot = ({
   isFirstSlot,
   gridPosition,
   onSlotClick,
-  timeIndex,
-  dayIndex,
 }) => {
   // Определяем скругление углов только для первого слота занятия
   const getBorderRadius = () => {
@@ -28,10 +25,26 @@ const TimeSlot = ({
     }
   };
 
-  // Если нет gridPosition, используем стандартное положение
-  const gridStyle = gridPosition || {
-    gridRow: timeIndex + 2,
-    gridColumn: dayIndex + 2,
+  // Функция для форматирования времени занятия
+  const getLessonTimeRange = () => {
+    if (!lesson) return "";
+
+    const startTime = new Date(lesson.startTime);
+    const endTime = new Date(lesson.endTime);
+
+    return `${startTime.getHours()}:${startTime
+      .getMinutes()
+      .toString()
+      .padStart(2, "0")}-${endTime.getHours()}:${endTime
+      .getMinutes()
+      .toString()
+      .padStart(2, "0")}`;
+  };
+
+  // Сокращаем длинное имя студента
+  const getShortStudentName = (name) => {
+    if (name.length <= 12) return name;
+    return name.split(" ")[0]; // Берем только имя
   };
 
   return (
@@ -43,16 +56,16 @@ const TimeSlot = ({
         ${getSlotClasses()}
         ${getBorderRadius()}
       `}
-      style={gridStyle}
+      style={gridPosition}
     >
       {/* Показываем информацию только для первого слота занятия */}
       {isFirstSlot && (
-        <div className="text-xs text-center leading-tight">
-          <div className="font-semibold truncate max-w-[80px]">
-            {lesson.title}
+        <div className="text-xs text-center leading-tight w-full px-1">
+          <div className="font-semibold truncate">
+            {getShortStudentName(lesson.student)}
           </div>
-          <div className="text-gray-600 text-[11px] mt-0.5">
-            {lesson.duration} мин
+          <div className="text-gray-600 text-[10px] mt-0.5 truncate">
+            {getLessonTimeRange()}({lesson.duration} мин)
           </div>
         </div>
       )}

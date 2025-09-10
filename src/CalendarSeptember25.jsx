@@ -7,53 +7,82 @@ import {
   getDaysToShow,
   formatDate,
   getDateRangeTitle,
-  isInWorkingHours,
 } from "./utils/calendarUtils";
 
-const CalendarSeptember25 = () => {
-  const [currentView, setCurrentView] = useState("week");
-  const [selectedDate, setSelectedDate] = useState(new Date(2025, 8, 1));
-  const [lessons, setLessons] = useState([]);
+const CalendarSeptember25 = ({
+  view = "week",
+  startDate = new Date(2025, 8, 1),
+  schedule = [],
+  lessons = [],
+  onSlotSelect,
+}) => {
+  const [currentView, setCurrentView] = useState(view);
+  const [selectedDate, setSelectedDate] = useState(startDate);
 
-  // Моковые данные занятий
-  const mockLessons = [
+  // Моковые данные согласно ТЗ
+  const mockSchedule = [
     {
-      id: 1,
-      date: new Date(2025, 8, 1, 9, 0),
-      duration: 60,
-      title: "Математика",
-    },
-    { id: 2, date: new Date(2025, 8, 1, 11, 0), duration: 90, title: "Физика" },
-    { id: 3, date: new Date(2025, 8, 2, 10, 0), duration: 30, title: "Химия" },
-    {
-      id: 4,
-      date: new Date(2025, 8, 3, 14, 0),
-      duration: 60,
-      title: "Биология",
+      startTime: "2025-09-01T09:00:00+00:00",
+      endTime: "2025-09-01T18:00:00+00:00",
     },
     {
-      id: 5,
-      date: new Date(2025, 8, 4, 16, 0),
-      duration: 90,
-      title: "История",
+      startTime: "2025-09-02T09:00:00+00:00",
+      endTime: "2025-09-02T18:00:00+00:00",
     },
     {
-      id: 6,
-      date: new Date(2025, 8, 8, 13, 0),
-      duration: 60,
-      title: "Литература",
+      startTime: "2025-09-03T09:00:00+00:00",
+      endTime: "2025-09-03T18:00:00+00:00",
     },
     {
-      id: 7,
-      date: new Date(2025, 8, 9, 15, 0),
-      duration: 30,
-      title: "География",
+      startTime: "2025-09-04T09:00:00+00:00",
+      endTime: "2025-09-04T18:00:00+00:00",
+    },
+    {
+      startTime: "2025-09-05T09:00:00+00:00",
+      endTime: "2025-09-05T18:00:00+00:00",
+    },
+    {
+      startTime: "2025-09-07T07:00:00+00:00",
+      endTime: "2025-09-07T11:00:00+00:00",
     },
   ];
 
-  useEffect(() => {
-    setLessons(mockLessons);
+  const mockLessons = [
+    {
+      id: 1,
+      duration: 60,
+      startTime: "2025-09-01T09:30:00+00:00",
+      endTime: "2025-09-01T10:29:59+00:00",
+      student: "Алексей Петров",
+    },
+    {
+      id: 2,
+      duration: 90,
+      startTime: "2025-09-01T11:00:00+00:00",
+      endTime: "2025-09-01T12:29:59+00:00",
+      student: "Мария Иванова",
+    },
+    {
+      id: 3,
+      duration: 30,
+      startTime: "2025-09-02T10:00:00+00:00",
+      endTime: "2025-09-02T10:29:59+00:00",
+      student: "Иван Сидоров",
+    },
+    {
+      id: 4,
+      duration: 150,
+      startTime: "2025-09-07T07:00:00+00:00",
+      endTime: "2025-09-07T09:29:59+00:00",
+      student: "Овен Оситров",
+    },
+  ];
 
+  // Используем переданные данные или моки по умолчанию
+  const currentSchedule = schedule.length > 0 ? schedule : mockSchedule;
+  const currentLessons = lessons.length > 0 ? lessons : mockLessons;
+
+  useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth < 768) {
         setCurrentView("day");
@@ -102,19 +131,32 @@ const CalendarSeptember25 = () => {
   const daysToShow = getDaysToShow(selectedDate, currentView);
   const dateRangeTitle = getDateRangeTitle(daysToShow);
 
-  // Проверка, является ли слот частью занятия
+  // Проверка, находится ли временной слот в рабочее время учителя
+  const isTimeInSchedule = (date, timeSlot) => {
+    const slotStart = new Date(date);
+    slotStart.setHours(timeSlot.hours, timeSlot.minutes, 0, 0);
+
+    const slotEnd = new Date(slotStart);
+    slotEnd.setMinutes(slotEnd.getMinutes() + 30);
+
+    return currentSchedule.some((slot) => {
+      const scheduleStart = new Date(slot.startTime);
+      const scheduleEnd = new Date(slot.endTime);
+
+      return slotStart >= scheduleStart && slotEnd <= scheduleEnd;
+    });
+  };
+
+  // Поиск занятия в данном слоте
   const getLessonForSlot = (date, timeSlot) => {
-    return lessons.find((lesson) => {
-      const lessonDate = new Date(lesson.date);
-      const lessonEnd = new Date(lessonDate);
-      lessonEnd.setMinutes(lessonEnd.getMinutes() + lesson.duration);
+    const slotStart = new Date(date);
+    slotStart.setHours(timeSlot.hours, timeSlot.minutes, 0, 0);
 
-      const slotStart = new Date(date);
-      slotStart.setHours(timeSlot.hours, timeSlot.minutes, 0, 0);
-      const slotEnd = new Date(slotStart);
-      slotEnd.setMinutes(slotEnd.getMinutes() + 30);
+    return currentLessons.find((lesson) => {
+      const lessonStart = new Date(lesson.startTime);
+      const lessonEnd = new Date(lesson.endTime);
 
-      return slotStart >= lessonDate && slotStart < lessonEnd;
+      return slotStart >= lessonStart && slotStart < lessonEnd;
     });
   };
 
@@ -122,7 +164,7 @@ const CalendarSeptember25 = () => {
   const isFirstSlotOfLesson = (date, timeSlot, lesson) => {
     if (!lesson) return false;
 
-    const lessonDate = new Date(lesson.date);
+    const lessonDate = new Date(lesson.startTime);
     return (
       lessonDate.getHours() === timeSlot.hours &&
       lessonDate.getMinutes() === timeSlot.minutes &&
@@ -139,6 +181,7 @@ const CalendarSeptember25 = () => {
   const getLessonGridPosition = (date, timeSlot, lesson) => {
     if (!lesson) return null;
 
+    const lessonDate = new Date(lesson.startTime);
     const dayIndex = daysToShow.findIndex(
       (d) => d.toDateString() === date.toDateString()
     );
@@ -160,19 +203,27 @@ const CalendarSeptember25 = () => {
   // Обработчик клика по слоту
   const handleSlotClick = (date, timeSlot) => {
     const lesson = getLessonForSlot(date, timeSlot);
-    const slotTime = new Date(date);
-    slotTime.setHours(timeSlot.hours, timeSlot.minutes);
+    const isWorkingHour = isTimeInSchedule(date, timeSlot);
+    const slotStart = new Date(date);
+    slotStart.setHours(timeSlot.hours, timeSlot.minutes, 0, 0);
+    const slotEnd = new Date(slotStart);
+    slotEnd.setMinutes(slotEnd.getMinutes() + 30);
 
-    if (lesson) {
+    if (onSlotSelect) {
+      onSlotSelect({ startTime: slotStart, endTime: slotEnd });
+    } else if (lesson) {
+      const lessonStart = new Date(lesson.startTime);
+      const lessonEnd = new Date(lesson.endTime);
+
       alert(
-        `Занятие: ${
-          lesson.title
-        }\nВремя: ${slotTime.toLocaleTimeString()}\nДлительность: ${
+        `Ученик: ${
+          lesson.student
+        }\nВремя: ${lessonStart.toLocaleTimeString()} - ${lessonEnd.toLocaleTimeString()}\nДлительность: ${
           lesson.duration
         } мин.`
       );
-    } else {
-      alert(`Свободный слот: ${slotTime.toLocaleTimeString()}`);
+    } else if (isWorkingHour) {
+      alert(`Свободный слот: ${slotStart.toLocaleTimeString()}`);
     }
   };
 
@@ -190,8 +241,7 @@ const CalendarSeptember25 = () => {
         <div
           className="grid gap-1 relative"
           style={{
-            // Динамическое количество колонок с гибкой шириной
-            gridTemplateColumns: `70px repeat(${daysToShow.length}, minmax(120px, 1fr))`,
+            gridTemplateColumns: `70px repeat(${daysToShow.length}, minmax(100px, 1fr))`,
           }}
         >
           {/* Заголовок с временами */}
@@ -199,7 +249,7 @@ const CalendarSeptember25 = () => {
             Время
           </div>
 
-          {/* Заголовки дней - растягиваются на всю доступную ширину */}
+          {/* Заголовки дней */}
           {daysToShow.map((day, dayIndex) => (
             <div
               key={dayIndex}
@@ -227,7 +277,7 @@ const CalendarSeptember25 = () => {
           {timeSlots.map((timeSlot, timeIndex) =>
             daysToShow.map((day, dayIndex) => {
               const lesson = getLessonForSlot(day, timeSlot);
-              const isWorkingHour = isInWorkingHours(timeSlot);
+              const isWorkingHour = isTimeInSchedule(day, timeSlot);
               const isFirstSlot = isFirstSlotOfLesson(day, timeSlot, lesson);
               const gridPosition = getLessonGridPosition(day, timeSlot, lesson);
 

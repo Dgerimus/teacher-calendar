@@ -1,5 +1,3 @@
-// utils/calendarUtils.js
-
 // Генерация временных слотов (30 минут интервалы с 8:00 до 21:30)
 export const generateTimeSlots = () => {
   return Array.from({ length: 28 }, (_, i) => {
@@ -91,10 +89,4 @@ export const getDateRangeTitle = (daysToShow) => {
       year: "numeric",
     })}`;
   }
-};
-
-// Проверка рабочего времени (9:00-18:00)
-export const isInWorkingHours = (timeSlot) => {
-  const totalMinutes = timeSlot.hours * 60 + timeSlot.minutes;
-  return totalMinutes >= 9 * 60 && totalMinutes < 18 * 60;
 };

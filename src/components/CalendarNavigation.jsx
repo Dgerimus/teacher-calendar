@@ -77,7 +77,7 @@ const CalendarNavigation = ({
           onClick={() => onViewChange("day")}
           className={`px-4 py-2 rounded-lg ${
             currentView === "day"
-              ? "bg-blue-600 text-white"
+              ? "bg-blue-600 text-blue-700"
               : "bg-gray-200 text-gray-700"
           }`}
         >
@@ -88,7 +88,7 @@ const CalendarNavigation = ({
           onClick={() => onViewChange("three-day")}
           className={`px-4 py-2 rounded-lg ${
             currentView === "three-day"
-              ? "bg-blue-600 text-white"
+              ? "bg-blue-600 text-blue-700"
               : "bg-gray-200 text-gray-700"
           }`}
         >
@@ -99,7 +99,7 @@ const CalendarNavigation = ({
           onClick={() => onViewChange("week")}
           className={`px-4 py-2 rounded-lg ${
             currentView === "week"
-              ? "bg-blue-600 text-white"
+              ? "bg-blue-600 text-blue-700"
               : "bg-gray-200 text-gray-700"
           }`}
         >
